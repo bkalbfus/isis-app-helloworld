@@ -1,7 +1,6 @@
 package domainapp.modules.hello.dom.hwo;
 
 import java.util.Comparator;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,15 +16,12 @@ import javax.jdo.annotations.VersionStrategy;
 
 import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.ActionLayout;
-import org.apache.isis.applib.annotation.Collection;
-import org.apache.isis.applib.annotation.CollectionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.Publishing;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Title;
-import org.apache.isis.applib.annotation.Where;
 import org.apache.isis.applib.layout.LayoutConstants;
 import org.apache.isis.applib.services.message.MessageService;
 import org.apache.isis.applib.services.repository.RepositoryService;
@@ -39,7 +35,7 @@ import domainapp.modules.hello.types.Notes;
         identityType = IdentityType.DATASTORE
 )
 @Unique(
-        name = "HelloWorldObject__name__UNQ", members = {"name"}
+        name = "HelloWorldChild__name__UNQ", members = {"name"}
 )
 @DatastoreIdentity(strategy = IdGeneratorStrategy.IDENTITY, column = "id")
 @Version(strategy= VersionStrategy.VERSION_NUMBER, column ="version")
@@ -47,18 +43,18 @@ import domainapp.modules.hello.types.Notes;
         @Query(
                 name = "findByName",
                 value = "SELECT " +
-                        "FROM domainapp.modules.hello.dom.hwo.HelloWorldObject " +
+                        "FROM domainapp.modules.hello.dom.hwo.HelloWorldChild " +
                         "WHERE name.indexOf(:name) >= 0"
         )
 )
-@Named("hello.HelloWorldObject")
+@Named("hello.HelloWorldChild")
 @DomainObject()
 @DomainObjectLayout()  // causes UI events to be triggered
-public class HelloWorldObject implements Comparable<HelloWorldObject> {
+public class HelloWorldChild implements Comparable<HelloWorldChild> {
 
-    private HelloWorldObject(){}
+    private HelloWorldChild(){}
 
-    public HelloWorldObject(final String name) {
+    public HelloWorldChild(final String name) {
         this.name = name;
     }
 
@@ -66,24 +62,7 @@ public class HelloWorldObject implements Comparable<HelloWorldObject> {
 
     private String name;
 
-    @Collection(hidden = Where.NOWHERE)
-    @CollectionLayout(hidden = Where.NOWHERE)
-    private List<HelloWorldChild> children;
-    
-    public HelloWorldObject createChild(String name) {
-    	HelloWorldChild newChild = new HelloWorldChild(name);
-    	this.children.add(newChild);
-    	return this;
-    }
-
-    @Action(choicesFrom = "children")
-    public HelloWorldObject enableDisable(List<HelloWorldChild> selection, boolean enabled) {
-    	selection.stream().forEach((c)->c.setEnabled(enabled));
-    	return this;
-    }
-
-    
-    @Title(prepend = "Object: ")
+    @Title(prepend = "Child: ")
     @Name
     @PropertyLayout(fieldSetId = LayoutConstants.FieldSetId.IDENTITY, sequence = "1")
     public String getName() {
@@ -95,13 +74,14 @@ public class HelloWorldObject implements Comparable<HelloWorldObject> {
 
 
     private String notes;
+    private boolean enabled = true;
 
-    public List<HelloWorldChild> getChildren() {
-		return children;
+    public boolean isEnabled() {
+		return enabled;
 	}
 
-	public void setChildren(List<HelloWorldChild> children) {
-		this.children = children;
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	@Notes
@@ -123,7 +103,7 @@ public class HelloWorldObject implements Comparable<HelloWorldObject> {
             associateWith = "name",
             describedAs = "Updates the object's name"
     )
-    public HelloWorldObject updateName(
+    public HelloWorldChild updateName(
             @Name final String name) {
         setName(name);
         return this;
@@ -156,8 +136,8 @@ public class HelloWorldObject implements Comparable<HelloWorldObject> {
     }
 
     @Override
-    public int compareTo(final HelloWorldObject other) {
-        return Comparator.comparing(HelloWorldObject::getName).compare(this, other);
+    public int compareTo(final HelloWorldChild other) {
+        return Comparator.comparing(HelloWorldChild::getName).compare(this, other);
     }
 
 
